@@ -71,9 +71,7 @@ app.post('/api/persons', (request, response) => {
     const body = request.body
 
     if (!body.name || !body.number) {
-        return response.status(400).json({
-            error: "content missing"
-        })
+        return response.status(400).json({ error: "content missing" })
     }
 
     if (persons.find(person => person.name === body.name)) {
@@ -82,15 +80,14 @@ app.post('/api/persons', (request, response) => {
         })
     }
     
-    const person = {
+    const person = new Person({
         name: body.name,
         number: body.number,
-        id: String(Math.random() * 100)
-    }
+    })
 
-    persons = persons.concat(person)
-
-    response.json(person)
+    person.save().then(savedPerson => {
+        response.json(savedPerson)
+    })
 })
 
 
