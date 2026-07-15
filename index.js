@@ -75,11 +75,14 @@ app.post('/api/persons', (request, response) => {
         return response.status(400).json({ error: "content missing" })
     }
 
-    if (persons.find(person => person.name === body.name)) {
-        return response.status(400).json({
-            error: "name must be unique"
+    Person.findOne({ name: body.name })
+        .then(person => {
+            if (person) {
+                return response.status(400).json({
+                    error: "content must be unique"
+                })
+            }
         })
-    }
     
     const person = new Person({
         name: body.name,
@@ -90,6 +93,29 @@ app.post('/api/persons', (request, response) => {
         response.json(savedPerson)
     })
 })
+
+app.put('/api/persons/:id', (request, response, next) => {
+    const { name, number } = request.body
+
+    Person.findById(request.params.id)
+        .then(person => {
+            if (!person) {
+                return response.status(404).end()
+            }
+
+            person.number = number
+            person.save().then((updatedPerson) => {
+                response.json(updatedPerson)
+            })
+        })
+        .catch(error => next(error))
+})
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: "unknown endpoint" })
+}
+
+app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
     console.log(error.message)
